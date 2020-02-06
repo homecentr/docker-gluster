@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  $$IMAGE_NAME$$:
+  gluster:
     build: .
-    image: homecentr/$$IMAGE_NAME$$
+    image: homecentr/gluster
     restart: unless-stopped
