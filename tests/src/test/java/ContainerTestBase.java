@@ -23,7 +23,7 @@ public abstract class ContainerTestBase {
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        String dockerImageTag = "homecentr/gluster:test"; //System.getProperty("image_tag", "homecentr/gluster");
+        String dockerImageTag = System.getProperty("image_tag");
 
         logger.info("Tested Docker image tag: {}", dockerImageTag);
 
