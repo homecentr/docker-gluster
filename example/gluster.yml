@@ -1,9 +1,0 @@
-nodes:
-  - node1
-  - node2
-  - node3
-volumes:
-  my_volume:
-    allowed_clients: "*"
-    physical_paths:
-      node1: /my/other/path

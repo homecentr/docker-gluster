@@ -1,7 +1,10 @@
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -9,37 +12,39 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 public abstract class ContainerTestBase {
     private static final Logger logger = LoggerFactory.getLogger(ContainerTestBase.class);
     private static final Integer nodeCount = 3;
 
-    private static GenericContainer[] _containers;
+    private GenericContainer[] _containers;
 
-    @BeforeClass
-    public static void setUp() throws IOException, InterruptedException {
-        String dockerImageTag = System.getProperty("image_tag", "homecentr/gluster");
+    @Before
+    public void setUp() throws IOException, InterruptedException {
+        String dockerImageTag = "homecentr/gluster:test"; //System.getProperty("image_tag", "homecentr/gluster");
 
         logger.info("Tested Docker image tag: {}", dockerImageTag);
 
         Network network = Network.newNetwork();
 
+        _containers = new GenericContainer[nodeCount];
+
         for(int i = 0; i < nodeCount; i++) {
-            _containers[i] = new GenericContainer<>(System.getProperty("image_tag", dockerImageTag))
+            _containers[i] = new GenericContainer<>(dockerImageTag)
                     .withNetwork(network)
-                    .withNetworkAliases("node" + i)
-                    .waitingFor(Wait.forLogMessage(".*end-volume.*", 1));
+                    .withNetworkAliases("node" + (i + 1))
+                    .withPrivilegedMode(true) // Required to allow extended attributes in the trusted space
+                    .waitingFor(Wait.forLogMessage("(.*)end-volume(.*)", 1));
 
             _containers[i].start();
             _containers[i].followOutput(new Slf4jLogConsumer(logger));
         }
-
-        for(int i = 0; i < nodeCount; i++) {
-            _containers[0].execInContainer("gluster peer probe node" + i);
-        }
     }
 
-    @AfterClass
-    public static void cleanUp() {
+    @After
+    public void cleanUp() {
         for(int i = 0; i < nodeCount; i++) {
             _containers[i].stop();
             _containers[i].close();
@@ -48,5 +53,50 @@ public abstract class ContainerTestBase {
 
     protected GenericContainer getContainer(int index) {
         return _containers[index];
+    }
+
+    protected Container.ExecResult execInContainer(int containerIndex, String command) throws IOException, InterruptedException {
+        Container.ExecResult result = getContainer(containerIndex).execInContainer(command.split(" "));
+
+        verifyExitCode(command, result);
+
+        return result;
+    }
+
+    protected Container.ExecResult execBashCommandInContainer(int containerIndex, String bashCommand) throws IOException, InterruptedException {
+        Container.ExecResult result = getContainer(containerIndex).execInContainer("bash", "-c", bashCommand);
+
+        verifyExitCode(bashCommand, result);
+
+        return result;
+    }
+
+    protected void execInEachContainer(String command) throws IOException, InterruptedException {
+        for(int i = 0; i < nodeCount; i++) {
+            Container.ExecResult result = getContainer(i).execInContainer(command.split(" "));
+
+            verifyExitCode(command, result);
+        }
+    }
+
+    private void verifyExitCode(String command, Container.ExecResult execResult) {
+        if(execResult.getExitCode() != 0) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("The command '"+ command +"' returned failing exit code: " + execResult.getExitCode());
+
+            builder.append(System.lineSeparator());
+            builder.append(System.lineSeparator());
+
+            builder.append("StdOut: ");
+            builder.append(execResult.getStdout());
+
+            builder.append(System.lineSeparator());
+            builder.append(System.lineSeparator());
+
+            builder.append("StdErr: ");
+            builder.append(execResult.getStderr());
+
+            fail(builder.toString());
+        }
     }
 }

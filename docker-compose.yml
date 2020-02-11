@@ -4,41 +4,28 @@ services:
   gluster1:
     build: .
     hostname: node1
-    volumes:
-      - ./example:/config
-    environment:
-      CONFIG_FILE_PATH: "/config/gluster.yml"
-      MASTER: 1
     networks:
       nodes:
         aliases:
           - "node1"
 
-  # gluster2:
-  #   build: .
-  #   image: homecentr/gluster
-  #   hostname: "node2"
-  #   environment:
-  #     - CONFIG_FILE_PATH=/config/gluster.yml
-  #   volumes:
-  #     - ./example:/config
-  #   networks:
-  #     nodes:
-  #       aliases:
-  #         - "node2"
+  gluster2:
+    build: .
+    image: homecentr/gluster
+    hostname: "node2"
+    networks:
+      nodes:
+        aliases:
+          - "node2"
 
-  # gluster3:
-  #   build: .
-  #   image: homecentr/gluster
-  #   hostname: "node3"
-  #   volumes:
-  #     - ./example:/config
-  #   environment:
-  #     - CONFIG_FILE_PATH=/config/gluster.yml
-  #   networks:
-  #     nodes:
-  #       aliases:
-  #         - "node3"      
+  gluster3:
+    build: .
+    image: homecentr/gluster
+    hostname: "node3"
+    networks:
+      nodes:
+        aliases:
+          - "node3"      
 
 networks:
   nodes:
