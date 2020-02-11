@@ -1,0 +1,5 @@
+#!/usr/bin/execlineb -P
+
+with-contenv
+
+python3 /usr/lib/gluster-init/gluster-init.py -vvv

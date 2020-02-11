@@ -1,0 +1,14 @@
+#!/usr/bin/execlineb -S1
+
+ifelse 
+{ 
+    # Condition
+    s6-test ${1} -eq 0
+}
+{
+    # Mark the service as one off
+    s6-svc -wd -O /run/s6/services/configurer
+}
+
+# Else kill the container
+s6-svscanctl -t /var/run/s6/services

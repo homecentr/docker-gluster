@@ -3,34 +3,50 @@ import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.io.IOException;
+
 public abstract class ContainerTestBase {
     private static final Logger logger = LoggerFactory.getLogger(ContainerTestBase.class);
+    private static final Integer nodeCount = 3;
 
-    private static GenericContainer _container;
+    private static GenericContainer[] _containers;
 
     @BeforeClass
-    public static void setUp() {
+    public static void setUp() throws IOException, InterruptedException {
         String dockerImageTag = System.getProperty("image_tag", "homecentr/gluster");
 
         logger.info("Tested Docker image tag: {}", dockerImageTag);
 
-        _container = new GenericContainer<>(System.getProperty("image_tag", dockerImageTag))
-                .waitingFor(Wait.forHealthcheck());
+        Network network = Network.newNetwork();
 
-        _container.start();
-        _container.followOutput(new Slf4jLogConsumer(logger));
+        for(int i = 0; i < nodeCount; i++) {
+            _containers[i] = new GenericContainer<>(System.getProperty("image_tag", dockerImageTag))
+                    .withNetwork(network)
+                    .withNetworkAliases("node" + i)
+                    .waitingFor(Wait.forLogMessage(".*end-volume.*", 1));
+
+            _containers[i].start();
+            _containers[i].followOutput(new Slf4jLogConsumer(logger));
+        }
+
+        for(int i = 0; i < nodeCount; i++) {
+            _containers[0].execInContainer("gluster peer probe node" + i);
+        }
     }
 
     @AfterClass
     public static void cleanUp() {
-        _container.stop();
-        _container.close();
+        for(int i = 0; i < nodeCount; i++) {
+            _containers[i].stop();
+            _containers[i].close();
+        }
     }
 
-    protected GenericContainer getContainer() {
-        return _container;
+    protected GenericContainer getContainer(int index) {
+        return _containers[index];
     }
 }
