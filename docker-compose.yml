@@ -1,6 +1,33 @@
 version: "3.7"
+
 services:
-  $$IMAGE_NAME$$:
+  gluster1:
     build: .
-    image: homecentr/$$IMAGE_NAME$$
-    restart: unless-stopped
+    hostname: node1
+    networks:
+      nodes:
+        aliases:
+          - "node1"
+
+  gluster2:
+    build: .
+    image: homecentr/gluster
+    hostname: "node2"
+    networks:
+      nodes:
+        aliases:
+          - "node2"
+
+  gluster3:
+    build: .
+    image: homecentr/gluster
+    hostname: "node3"
+    networks:
+      nodes:
+        aliases:
+          - "node3"      
+
+networks:
+  nodes:
+    driver: bridge
+    attachable: true
