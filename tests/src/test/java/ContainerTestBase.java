@@ -1,7 +1,5 @@
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
@@ -12,7 +10,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public abstract class ContainerTestBase {

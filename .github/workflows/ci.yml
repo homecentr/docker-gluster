@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Restart docker
+        run: systemctl start docker
+
       - name: Set up java for tests execution
         uses: actions/setup-java@v1
         with:
