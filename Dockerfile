@@ -53,19 +53,19 @@ VOLUME /var/lib/glusterd
 
 # List of ports is based on https://www.jamescoyle.net/how-to/457-glusterfs-firewall-rules
 
-# Port mapper
-EXPOSE 111/tcp 111/udp
+# # Port mapper
+# EXPOSE 111/tcp 111/udp
 
-# Gluster daemon
-EXPOSE 24007/tcp
+# # Gluster daemon
+# EXPOSE 24007/tcp
 
-# Glusterd management
-EXPOSE 24008/tcp
+# # Glusterd management
+# EXPOSE 24008/tcp
 
-# Bricks ports
-EXPOSE 49152-49552/tcp
+# # Bricks ports
+# EXPOSE 49152-49552/tcp
 
-# NFS service
-EXPOSE 38465-38467/tcp
+# # NFS service
+# EXPOSE 38465-38467/tcp
 
 ENTRYPOINT [ "/init" ]
