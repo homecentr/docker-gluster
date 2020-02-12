@@ -62,8 +62,9 @@ EXPOSE 24007/tcp
 # Glusterd management
 EXPOSE 24008/tcp
 
-# Bricks ports
-EXPOSE 49152-49552/tcp
+# Bricks ports (there may be more open ports higher than 49152 depending on the number of bricks)
+# but Docker does not like a large number of explicitly exposed ports, hence just these are specified.
+EXPOSE 49152-49155/tcp
 
 # NFS service
 EXPOSE 38465-38467/tcp

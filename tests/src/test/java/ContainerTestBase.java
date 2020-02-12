@@ -1,3 +1,4 @@
+import PullPolicies.NeverPullImagePolicy;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public abstract class ContainerTestBase {
     private GenericContainer[] _containers;
 
     @Before
-    public void setUp() throws IOException, InterruptedException {
+    public void setUp() {
         String dockerImageTag = System.getProperty("image_tag");
 
         logger.info("Tested Docker image tag: {}", dockerImageTag);
@@ -33,6 +34,7 @@ public abstract class ContainerTestBase {
                     .withNetwork(network)
                     .withNetworkAliases("node" + (i + 1))
                     .withPrivilegedMode(true) // Required to allow extended attributes in the trusted space
+                    .withImagePullPolicy(new NeverPullImagePolicy())
                     .waitingFor(Wait.forLogMessage("(.*)end-volume(.*)", 1));
 
             _containers[i].start();
