@@ -1,46 +1,38 @@
-ARG GLUSTERFS_VERSION="6.7-1.el8"
+ARG GLUSTERFS_REPO_MAJOR_VERSION="7"
+ARG GLUSTERFS_REPO_MINOR_VERSION="7.4"
+ARG GLUSTERFS_PACKAGE_VERSION="7.4-1.el8"
 
 ###
 ### Download GlusterFS repo definition file
 ###
-FROM alpine:3.11.3 as repo-tmp
+FROM alpine:3.11.5 as repo-tmp
 
-RUN date && apk add --no-cache wget=1.20.3-r0 && \
-    wget https://download.gluster.org/pub/gluster/glusterfs/6/LATEST/CentOS/glusterfs-rhel8.repo -P /tmp/
+ARG GLUSTERFS_REPO_MAJOR_VERSION
+ARG GLUSTERFS_REPO_MINOR_VERSION
+
+RUN apk add --no-cache wget=1.20.3-r0 && \
+    wget "https://download.gluster.org/pub/gluster/glusterfs/${GLUSTERFS_REPO_MAJOR_VERSION}/${GLUSTERFS_REPO_MINOR_VERSION}/CentOS/glusterfs-rhel8.repo" -P /tmp/
 
 ###
 ### Download S6 Overlay
 ###
-FROM alpine:3.11.3 as s6-tmp
-
-ENV S6_VERSION="v1.22.1.0"
-ENV CPU_ARCH="amd64"
-
-ADD https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${CPU_ARCH}.tar.gz /tmp/
-
-    # Create a directory where to extract S6
-RUN mkdir /s6 && \
-    # Extract the S6 tarball
-    tar xzf /tmp/s6-overlay-${CPU_ARCH}.tar.gz -C /s6 && \
-    # Move the binary to a separate folder to avoid the issue with overriding symlinks
-    cp -r /s6/bin/. /s6/usr/bin/ && \
-    rm -rf /s6/bin
+FROM homecentr/base:centos-1.2.1 as base
 
 ###
 ### Final image
 ###
 FROM centos:8
 
-ARG GLUSTERFS_VERSION
+ARG GLUSTERFS_PACKAGE_VERSION
 
 LABEL maintainer="Lukas Holota <me@lholota.com>"
-LABEL org.homecentr.dependency-version=$GLUSTERFS_VERSION
+LABEL org.homecentr.dependency-version=$GLUSTERFS_PACKAGE_VERSION
 
 COPY --from=repo-tmp /tmp/glusterfs-rhel8.repo /etc/yum.repos.d/glusterfs-rhel8.repo
-COPY --from=s6-tmp /s6 /
+COPY --from=base / /
 
     # Install GlusterFS
-RUN dnf --enablerepo=PowerTools -y install glusterfs-server-$GLUSTERFS_VERSION && \
+RUN dnf --enablerepo=PowerTools -y install glusterfs-server-$GLUSTERFS_PACKAGE_VERSION && \
     # Move the configuration to a different folder so the actual one can become a volume
     mv /etc/glusterfs /etc/glusterfs-default
 
