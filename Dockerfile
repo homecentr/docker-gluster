@@ -5,7 +5,7 @@ ARG GLUSTERFS_PACKAGE_VERSION="7.4-1.el8"
 ###
 ### Download GlusterFS repo definition file
 ###
-FROM alpine:3.11.5 as repo-tmp
+FROM alpine:3.12.0 as repo-tmp
 
 ARG GLUSTERFS_REPO_MAJOR_VERSION
 ARG GLUSTERFS_REPO_MINOR_VERSION
